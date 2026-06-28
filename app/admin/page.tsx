@@ -1,16 +1,17 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { supabaseAdmin } from "@/lib/supabase";
+import { tashkentDayRange, tashkentYearMonth } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
 async function getStats() {
-  const now = new Date();
-  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-    .toISOString()
-    .slice(0, 10);
-  const todayStart = now.toISOString().slice(0, 10) + "T00:00:00.000Z";
-  const todayEnd = now.toISOString().slice(0, 10) + "T23:59:59.999Z";
+  const { year, month } = tashkentYearMonth();
+  const monthStart = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const nextMonth =
+    month === 11
+      ? `${year + 1}-01-01`
+      : `${year}-${String(month + 2).padStart(2, "0")}-01`;
+  const { start: todayStart, end: todayEnd } = tashkentDayRange();
 
   const [moodThisMonth, pendingWishes, pendingConfirmation, locationToday] =
     await Promise.all([
@@ -30,8 +31,8 @@ async function getStats() {
       supabaseAdmin
         .from("location_calls")
         .select("*", { count: "exact", head: true })
-        .gte("created_at", todayStart)
-        .lte("created_at", todayEnd),
+        .gte("created_at", todayStart.toISOString())
+        .lt("created_at", todayEnd.toISOString()),
     ]);
 
   return {

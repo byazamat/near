@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { supabaseAdmin } from "@/lib/supabase";
 import { sendToAdmin } from "@/lib/telegram";
+import { tashkentDateString } from "@/lib/time";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser(request);
@@ -30,10 +31,11 @@ export async function GET(request: NextRequest) {
     .order("date", { ascending: false });
 
   if (year && month) {
-    const paddedMonth = month.padStart(2, "0");
-    const start = `${year}-${paddedMonth}-01`;
-    const endDate = new Date(Number(year), Number(month), 1);
-    const end = endDate.toISOString().slice(0, 10);
+    const y = Number(year);
+    const m = Number(month);
+    const start = `${year}-${month.padStart(2, "0")}-01`;
+    const end =
+      m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
     query = query.gte("date", start).lt("date", end);
   } else if (year) {
     query = query.gte("date", `${year}-01-01`).lt("date", `${Number(year) + 1}-01-01`);
@@ -63,7 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid score" }, { status: 400 });
   }
 
-  const entryDate = date ?? new Date().toISOString().slice(0, 10);
+  const entryDate = date ?? tashkentDateString();
 
   const { data: entry, error } = await supabaseAdmin
     .from("mood_entries")

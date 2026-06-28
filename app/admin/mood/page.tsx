@@ -2,6 +2,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { MoodChart } from "@/components/admin/MoodChart";
 import { MoodEntriesTable } from "@/components/admin/MoodEntriesTable";
 import { supabaseAdmin } from "@/lib/supabase";
+import { tashkentYear } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ async function getMoodData() {
 
 export default async function MoodPage() {
   const { entries } = await getMoodData();
-  const year = new Date().getFullYear();
+  const year = tashkentYear();
 
   return (
     <div className="flex flex-col gap-6">
